@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: admin-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/subnets: subnet-, subnet-, subnet-
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/certificate-arn:  arn:aws:acm:us-west-2:
+    #alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80,"HTTPS":443}]'
+    alb.ingress.kubernetes.io/security-groups: sg-
+  labels:
+    app: admin
+spec:
+  rules:
+  - host: demo.app.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: admin
+          servicePort: 80
