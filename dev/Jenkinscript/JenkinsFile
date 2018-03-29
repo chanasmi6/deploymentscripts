@@ -1,0 +1,88 @@
+import groovy.json.*
+import groovy.json.JsonSlurperClassic
+
+// def getVersion(def projectJson){
+//     def slurper = new JsonSlurperClassic()
+//     project = slurper.parseText(projectJson)
+//     slurper = null
+//     return project.version.split('-')[0]
+// }
+// def version, revision
+
+
+node {
+   if( "${action}" == "apply" ) {
+
+
+stage "DockerSourceCheckout"
+ // deleteDir()
+ checkout([$class: 'GitSCM', branches: [[name: '*/branch/docker']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '9d6de320-fe04-4b31-bd30-1ed161b9a7d8', url: '<url>']]])
+
+ 
+ stage "DockerImageBuild"
+ sh "cd ${env.WORKSPACE}"
+  sh '''
+  cd ${appname}
+  sudo docker build   --no-cache  -t <ecrarn>.dkr.ecr.us-west-2.amazonaws.com/${appname}:${BUILD_ID} .
+  '''
+  
+  stage "DockerPush"
+  sh '''
+
+sudo docker login -u AWS -p eyJwYXlsb2FkIjoib3Rua09jOTNReXcybEFHOG1jeTJ4akNnWEtFaHdveGlEdXBZYTlaMlVGQmJROGFMbDI2Tm1pNW5uenRaYjJZdTBMTENHQkFwNWZ2UzFmTGR4SmNwcUdvc3lBaXNSeTNQRDdLUHhYM2ZkVGtIY0Iwd3Y2dlBLTGlIc004OG9pN2hvYkZKVGN0NzRJUGF3NFdqb0RvREZDWkMxYjk1MHlreHZpZjYrMDB1Z05OOS9nVlBsU3QyZm9CTXgrRjFsQjVzOHlZNnVzSkFRaW9WTXVhR0I5Nll2ZDhDZE4vVVM5WE5xdEkxNk5WUFgydHcxR1hlKy85eHREeHZZSmg4a09makM2S3hFL2ZGcmZDczFLeGNad0dyeXVrckQxR1IzeFNnWFpRSUdkR1JISWVSQVV5UEE2ZENzVmx3QlNJU1k0Yit2K2VFdFczUUR2M2lXK0xhSTRSY2NteTlDKzljM3Foc0gwT29DYnhyYlBuQmIzTnQ5RlZ5Y0FlWjFVQUFkdFV6Q29haitsNVp3R0xvUVNKcmNmNmo3Uzd5MS8rbzhYcUtZOGg2ejVrbTFWOXhJdCs3T2tqWHhIbHN2bmhSYlk3S2lZbm51YzFXaXpCQk1MK0JDMUwzemtwN3J2dDZvcHhMbVIxWFVYdEMvLzM2dEhsdHRqaDZ2U1NlSnB6ZFRuVGs3Q0lXeUpLckUrZmZxVXk4cHJjcXhVR2VETkJkT1BpVWx4YjVJZFE1eFFyNWR5cnljMVQ2cWdCd3VLSDU2S2VNdVNKZU9oRWlQM3I3OTlld25zZlErWlhJdkFFVkpWR1JCL2R1YVA0TnlXNlZXNnZNc3dRd2FLMXFDdERhQUNqUE9ndE45ZG8zdnNadDAwYWI1TDRCUkZwaDArVVpUNUdab2dwNlFoV29VSzN2a0F5VnpmVStUQWRxSzN5S0lHT2c1aWptZ3IrbW1qbXBRSWFzTnNsSVN4SUl0dUVhWVYrUlhVZStIYWlsQ1BQVjdEQUthQktWYU1QYXhCY1hFeU93T3gwektXZkM5NmdtUXg0ejBhaUlLc2hmbC9RdGhjcjl5RXJUZkJaL2hpaWZjQkNNNDBLbnlCRXJhZWFpazF3YU1tcW9idUtLR2pPNmVXSXl2OUdmWTdscjJ0WHA1YzJnZ1lRMzl0MmhmT2JXYnhyNzFJUUJYVmxRcjR6ZnVYVjU3cUVyVVFvNFlkNm81cFpNc3dYa1NLMXJYTy9zZUg3ZU5OYmpXSWdTRGxYY2dRblE3RUFqVXlKcHdrNllseWp2bmk5T0thSDQ4QmpTUkpFalVpWkxsTGw4RUsrSWtFaHZDbnZXeVFxejMvNjIrNENLd0E1bUtBMjFiN0E1S243OW5ZQWkxK00xdGxiVWZvWkZFeTdmVlkyVDREbTFJMVB2SGY4ZnJXZTZvZXgwTjFnUityQlJKalo1MWlLMWdtUlBtM3JTYlNGN2ZPbHZORVp3V3ZlYzhNMzZyT1NLRXBOYzJrND0iLCJkYXRha2V5IjoiQVFFQkFIajZsYzRYSUp3LzdsbjBIYzAwRE1lazZHRXhIQ2JZNFJJcFRNQ0k1OEluVXdBQUFINHdmQVlKS29aSWh2Y05BUWNHb0c4d2JRSUJBREJvQmdrcWhraUc5dzBCQndFd0hnWUpZSVpJQVdVREJBRXVNQkVFREEvL3FxeDd6Q2puTFNScGNRSUJFSUE3OWZZU2ZhK0hsM2NlNWswVFMvRE9XTyt2eXpUdDQ3QTFYb2I0Z0lzY2ZvVnNWUUNVbmV0TFZsalg5VFFYQ3haS1A0T2pIa2lFZDJUbjRVcz0iLCJ2ZXJzaW9uIjoiMiIsInR5cGUiOiJEQVRBX0tFWSIsImV4cGlyYXRpb24iOjE1MjIzMjI0NDd9 https://<ecrarn>.dkr.ecr.us-west-2.amazonaws.com
+
+  sudo docker push <ecrarn>.dkr.ecr.us-west-2.amazonaws.com/${appname}:${BUILD_ID}
+  export urlimage=<ecrarn>.dkr.ecr.us-west-2.amazonaws.com/${appname}:${BUILD_ID}
+  echo $urlimage
+  '''
+  stage "removeImages"
+  sh '''
+  sudo docker images -q| sudo xargs docker rmi --force
+  '''
+  stage "RemoveDockerworkspace"
+  deleteDir()
+  
+  
+stage "KubeCheckOut"
+//  deleteDir()
+ checkout([$class: 'GitSCM', branches: [[name: '*/branch']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '9d6de320-fe04-4b31-bd30-1ed161b9a7d8', url: '<url>']]])
+stage "podDeployment"
+// stage "DeployPod"
+ sh "cd ${env.WORKSPACE}"
+sh '''
+export urlimage=<ecrarn>.dkr.ecr.us-west-2.amazonaws.com/${appname}:${BUILD_ID}
+echo $urlimage
+sed -i 's|latest|'$urlimage'|g'  kubernetes/${env}/${appname}/${appname}-deploy.yaml
+cat kubernetes/${env}/${appname}/${appname}-deploy.yaml
+kubectl ${action} -f kubernetes/${env}/${appname}/${appname}-deploy.yaml
+
+'''
+// kubectl ${action} -f kubernetes/${env}/${appname}/${appname}-hpa.yaml
+//  kubectl ${action} -f kubernetes/${env}/${appname}/${appname}-ingress.yaml
+// kubectl ${action} -f kubernetes/${env}/${appname}/${appname}-svc.yaml
+
+
+}
+else if ( "${action}" == "delete" ) {
+  stage "KubeCheckOutDelete"
+//  deleteDir()
+ checkout([$class: 'GitSCM', branches: [[name: '*/kubebranchscript']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '9d6de320-fe04-4b31-bd30-1ed161b9a7d8', url: 'url']]])
+stage "podDeploymentDelete"
+// stage "DeployPod"
+ sh "cd ${env.WORKSPACE}"
+sh '''
+cat kubernetes/${env}/${appname}/${appname}-deploy.yaml
+kubectl ${action} -f kubernetes/${env}/${appname}/${appname}-deploy.yaml
+
+'''
+// kubectl ${action} -f kubernetes/${env}/${appname}/${appname}-hpa.yaml
+//  kubectl ${action} -f kubernetes/${env}/${appname}/${appname}-ingress.yaml
+// kubectl ${action} -f kubernetes/${env}/${appname}/${appname}-svc.yaml
+
+
+    
+}
+else {
+    println "No update"
+}
+}
